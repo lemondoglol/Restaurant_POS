@@ -8,6 +8,12 @@ package restaurant;
 import com.sun.glass.events.KeyEvent;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -27,6 +33,8 @@ public class Main_Menu extends javax.swing.JFrame {
     /**
      * Creates new form Main_Menu
      */
+    
+    private static int ticket = 0;
     HashMap<String, Double> menu;
     private static int id = 0;
     boolean BOSS_STATUS = false;
@@ -60,20 +68,8 @@ public class Main_Menu extends javax.swing.JFrame {
     //initialize menu
     private void initialize_menu(){
         menu = new HashMap<>();
-        //Drinks and Snacks Tab
-        menu.put("Fries", 2.50);
-        menu.put("Nuggets", 3.50);
-        menu.put("Apple_Pie", 1.50);
-        menu.put("Water", 1.0);
-        menu.put("Soft Drink", 1.5);
-        menu.put("Bubble Tea", 2.5);
-        menu.put("Special Drink", 3.0);
-        menu.put("Favor Egg", 1.5);
-        //Main Entree Tab
-        menu.put("Beef_Broccoli", 10.50);
-        menu.put("Shrimp_Fried_Rice", 9.5);
-        
-        
+        init_menu();
+
         all_tables = new HashMap<>();
         //test
         Map<String, Integer> m1 = new HashMap<>();
@@ -87,6 +83,49 @@ public class Main_Menu extends javax.swing.JFrame {
         Map<String, Integer> m5 = new HashMap<>();
         all_tables.put("table_5",m5);
     }
+    // initialize menu, read from CSV file
+    private void init_menu(){
+        String fileName = "C:\\Users\\Ryan\\Documents\\NetBeansProjects\\Restaurant\\src\\restaurant\\menu.txt";
+        String line = null;
+        try{
+            FileReader fr = new FileReader(fileName);
+            BufferedReader br = new BufferedReader(fr);
+            while((line = br.readLine()) != null){
+                String[] temp = line.split(",");
+                menu.put(temp[0], Double.parseDouble(temp[1]));
+                //System.out.print(temp[0] + "    " + temp[1]);
+            }
+            br.close();
+        }catch(Exception ex){
+            System.out.println("Can't find menu file!!!");
+        }
+    }
+    // print recipt, write into CSV file
+    private void print_recipt(String in, int name){
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = new Date();
+        String path = "C:\\Users\\Ryan\\Documents\\NetBeansProjects\\Restaurant\\src\\restaurant\\";
+        String fileName = path + "Ticket" + name + "-" + dateFormat.format(date) + ".txt";
+        //System.out.print(fileName);
+        try{
+            File fr = new File(fileName);
+            //Create the file
+            fr.createNewFile();
+            FileWriter frr = new FileWriter(fr);
+            BufferedWriter br = new BufferedWriter(frr);
+            String[] temp = in.split("\n");
+            for(String s : temp){   
+                br.write(s);
+                br.newLine();
+            }
+            
+            br.close();
+        }catch(Exception e){
+            System.out.println("Can't save CSV file!!!");
+        }
+    }
+    
+    
     private void make_button_invisible(){
 
     }
@@ -535,6 +574,8 @@ public class Main_Menu extends javax.swing.JFrame {
         if(this.message.getText() == null || this.message.getText().length() == 0) return;
         String[] arr =this.message.getText().split("\n");
         String s = this.message.getText();
+        print_recipt(s,ticket);
+        ticket++;
         String[] money = arr[0].split("\\$");
         this.total_income += Double.parseDouble(money[1]);
         if(CURRENT_TABLE != null){
